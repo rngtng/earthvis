@@ -15,11 +15,11 @@ class Review {
     this.date = _date;
     this.lat = _lat;      
     this.lng = _lng;
-    lat = radians(-lat);
-    lng = radians(lng-90);
-    this.x = SPHERE_RADIUS * cos(lng) * cos(lat);
-    this.y = SPHERE_RADIUS * sin(lng) * cos(lat);
-    this.z = SPHERE_RADIUS * sin(lat);    
+    _lat = radians(-lat);
+    _lng = radians(lng-90);
+    this.x = SPHERE_RADIUS * cos(_lng) * cos(_lat);
+    this.y = SPHERE_RADIUS * sin(_lng) * cos(_lat);
+    this.z = SPHERE_RADIUS * sin(_lat);    
   }
 
   String to_s() {
@@ -31,17 +31,16 @@ class Review {
 
 ArrayList review_find(int anz) {
   ArrayList reviews = new ArrayList();
-  String query = "SELECT DISTINCT(reviews.place_id), reviews.stars AS stars, reviews.updated_at AS date, places.latitude AS lat, longitude AS lng " +
-    "FROM reviews JOIN places ON reviews.place_id = places.id " +
-    "WHERE places.latitude IS NOT NULL ORDER BY reviews.updated_at LIMIT " + anz; 
+  String query = "SELECT DISTINCT(place_id), x,y,z, lat, lng, date, stars FROM locations ORDER BY date LIMIT " + anz; 
 
   println(query);
 
-  con.query( query );
+  con2.query( query );
   println("done");
-  while( con.next() )  {
-    reviews.add( new Review( con.getInt("stars"), con.getString("date"), con.getFloat("lat"), con.getFloat("lng") ) );
-  }
+  while( con2.next() )  {
+  //  t.addPoint(con2.getInt("x"), con2.getInt("y"), con2.getInt("z"), random(1), random(1), random(1), 1);
+    reviews.add( new Review( con2.getInt("stars"), con2.getString("date"), con2.getFloat("lat"), con2.getFloat("lng") ) );
+  } 
   return reviews;
 }    
 

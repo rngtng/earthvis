@@ -6,32 +6,65 @@
 import processing.opengl.*; 
 import peasy.*;
 import de.bezier.data.sql.*;
+import javax.media.opengl.GL;
+import com.hardcorepawn.*;
 
-SQLite db;
+
+
+
+de.bezier.data.sql.SQLite con;
 PeasyCam cam;
 
-int SPHERE_RADIUS = 800;
+SuperPoint t;
+
+String DB_USER = "root";
+String DB_PASS = "";
+String DB_NAME = "earthvis";
+String DB_HOST = "127.0.0.1";
+
+Ellipsoid earth;
+
+PGraphicsOpenGL pgl;
+GL gl;
+
+MySQL con2;
+
+int SPHERE_RADIUS = 95;
 int AXIS_SIZE = SPHERE_RADIUS+20;
-int ANZ = 500000;
+int ANZ = 500; //000;
 
 ArrayList reviews;
 ArrayList locators;
 
 HScrollbar hs;
-TexturedSphere ts;
 
 void setup() {
   size(800,800,OPENGL); 
-  
-  background(0);  
-  cam = new PeasyCam(this, SPHERE_RADIUS * 2);
+  cam = new PeasyCam(this, AXIS_SIZE+150);
 
   hs = new HScrollbar(10, height-30, width-20, 10, 6);
-  //cam.setMinimumDistance(AXIS_SIZE);
+ // cam.setMinimumDistance(AXIS_SIZE);
   
-  ts = new TexturedSphere(SPHERE_RADIUS);
+  t = new SuperPoint(this);
 
-  db = new SQLite( this, "copy.rdb" );  // open database file
+  con2 = new MySQL( this, DB_HOST, DB_NAME, DB_USER, DB_PASS );
+  if( !con2.connect() ) {
+    println("couldn't connect to DB: " + DB_HOST + " " + DB_NAME + " " + DB_USER);
+    exit();
+  }
+
+  earth = new Ellipsoid(this, 50, 50);
+  earth.setTexture("earth.jpg");
+  earth.setRadius(SPHERE_RADIUS);
+  earth.moveTo(new PVector(0,0,0));
+  earth.rotateBy(0, radians(90), 0);
+  
+  /* con = new de.bezier.data.sql.SQLite( this, "copy.rdb" );  // open database file
+  if ( !con.connect() )
+  {
+    println("couldn't connect to Local DB");
+    exit();      
+  } */
   
   reviews = review_find(ANZ);
    
@@ -39,9 +72,9 @@ void setup() {
 }
 
 boolean drawAxis = true;
-boolean drawSpehere = true;
+boolean drawSphere = false;
 boolean drawGlobe = true;
-boolean drawNet = true;
+boolean drawNet = false;
 
 //#################################################
 int cnt = 0;
@@ -54,10 +87,11 @@ void draw() {
   pointLight(255, 255, 255, 700, 700, 700);
   cam.endHUD();    
   
+  
   if( drawAxis) draw_xyz(AXIS_SIZE);
   if( drawNet) draw_net(SPHERE_RADIUS, 9);  
   if( drawSphere) draw_sphere(SPHERE_RADIUS);
-  if( drawGlobe) ts.draw();
+  if( drawGlobe) earth.draw();
   
   draw_reviews();
      

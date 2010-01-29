@@ -31,13 +31,17 @@ void setup() {
   
   ts = new TexturedSphere(SPHERE_RADIUS);
 
-  db = new SQLite( this, "data.rdb" );  // open database file
+  db = new SQLite( this, "copy.rdb" );  // open database file
   
   reviews = review_find(ANZ);
    
   println("loaded");
 }
 
+boolean drawAxis = true;
+boolean drawSpehere = true;
+boolean drawGlobe = true;
+boolean drawNet = true;
 
 //#################################################
 int cnt = 0;
@@ -45,30 +49,24 @@ int cnt = 0;
 void draw() {
   if(!hs.locked) hs.setPos( float(cnt) / reviews.size() );
   background(0);  
+  
   cam.beginHUD();
-//  pointLight(51, 102, 126, 600, 600, 600);
   pointLight(255, 255, 255, 700, 700, 700);
   cam.endHUD();    
-  draw_xyz(AXIS_SIZE);
   
-  //draw_net(SPHERE_RADIUS, 9);  
-  //draw_locators();
+  if( drawAxis) draw_xyz(AXIS_SIZE);
+  if( drawNet) draw_net(SPHERE_RADIUS, 9);  
+  if( drawSphere) draw_sphere(SPHERE_RADIUS);
+  if( drawGlobe) ts.draw();
+  
   draw_reviews();
-  ts.draw();
-  
-  //draw_sphere(SPHERE_RADIUS);
+     
   cam.setMouseControlled(!hs.locked);
-  /*
-  draw_ll(0,0,#0000FF);
-  draw_ll(30,90,#0000FF);
-  draw_ll(30,-90,#0000FF);
-  //draw_ll(80,0,#FFFF00);
-  //draw_ll(-80,0,#FFFF00);
-  */
   
   cam.beginHUD();
   draw_line();
   cam.endHUD();
+  
   cnt = ceil(hs.getPos() * reviews.size()) + 2;
   if( cnt > reviews.size()) cnt = 0;
 }

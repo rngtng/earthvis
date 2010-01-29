@@ -10,6 +10,8 @@ class Review {
   float y;
   float z;
 
+  color c;
+
   Review(int _stars, String _date, float _lat, float _lng) {
     this.stars = _stars;
     this.date = _date;
@@ -20,6 +22,26 @@ class Review {
     this.x = SPHERE_RADIUS * cos(_lng) * cos(_lat);
     this.y = SPHERE_RADIUS * sin(_lng) * cos(_lat);
     this.z = SPHERE_RADIUS * sin(_lat);    
+    this.c = get_color(_stars);
+  }
+
+ 
+  void draw() {
+    stroke(this.c); 
+    rotateX(PI/2);  
+    translate(this.x, -this.y, -this.z);
+    point(0,0);
+    translate(-this.x, this.y, this.z);
+    rotateX(-PI/2);  
+  }
+
+  color get_color(int s) {
+      if( s == 1 ) return #FF0000;
+      if( s == 2 ) return #DD1111;
+      if( s == 3 ) return #FFFF00;
+      if( s == 4 ) return #99FF00;
+      if( s == 5 ) return #00FF00;
+      return #0000FF;
   }
 
   String to_s() {
@@ -35,52 +57,11 @@ ArrayList review_find(int anz) {
 
   println(query);
 
-  con2.query( query );
+  con.query( query );
   println("done");
-  while( con2.next() )  {
-  //  t.addPoint(con2.getInt("x"), con2.getInt("y"), con2.getInt("z"), random(1), random(1), random(1), 1);
-    reviews.add( new Review( con2.getInt("stars"), con2.getString("date"), con2.getFloat("lat"), con2.getFloat("lng") ) );
+  while( con.next() )  {
+    reviews.add( new Review( con.getInt("stars"), con.getString("date"), con.getFloat("lat"), con.getFloat("lng") ) );
   } 
   return reviews;
-}    
-
-
-
-class Locator {
-  float lat;
-  float lng;
-
-  color c;
-
-  Locator(float _lat, float _lng, color _c) {
-    this.lat = _lat;      
-    this.lng = _lng;
-    this.c = _c;
-  }
-
-  String to_s() {
-    return "Locator: " + this.lat + " " +  this.lng;
-  }
 }
-
-
-Locator locator_find(String domain_id, color c) {
-  String query = "SELECT locators.latitude AS lat, locators.longitude AS lng FROM locators WHERE domain_id = '" + domain_id + "'"; 
-
-  con.query( query );
-  con.next();
-  Locator l = new Locator(con.getFloat("lat"), con.getFloat("lng"), c);
-  println( l.to_s());
-  return l; 
-}
-
- /*
-  locators = new ArrayList();
-  locators.add(locator_find("de600-hamburg", #FF0000));
-  locators.add(locator_find("de300-berlin", #FF0000));
-  locators.add(locator_find("de212", #FF0000));
- */
-
-
-
 

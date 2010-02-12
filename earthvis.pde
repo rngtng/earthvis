@@ -21,14 +21,17 @@ MySQL con;
 
 int SPHERE_RADIUS = 100;
 int AXIS_SIZE = SPHERE_RADIUS+20;
-int ANZ = 500; //000;
+int ANZ = 50000;
 
+ArrayList points;
 ArrayList reviews;
 
 HScrollbar hs;
 
 void setup() {
   size(800, 800, OPENGL); 
+  points = new ArrayList();
+  
   cam = new PeasyCam(this, AXIS_SIZE+150);
 
   hs = new HScrollbar(10, height-30, width-20, 10, 6);
@@ -44,9 +47,9 @@ void setup() {
   earth.setTexture("earth.jpg");
   earth.setRadius(SPHERE_RADIUS);
   earth.moveTo(new PVector(0,0,0));
-  earth.rotateBy(0, radians(90), 0);
+  earth.rotateBy(radians(90), radians(90), 0);
     
-  reviews = review_find(ANZ);
+  review_find(this, ANZ);
    
   println("loaded");
 }
@@ -59,19 +62,20 @@ boolean drawNet = false;
 int cnt = 0;
 
 void draw() {
-  if(!hs.locked) hs.setPos( float(cnt) / reviews.size() );
+  rotateY(-PI);
+ // if(!hs.locked) hs.setPos( float(cnt) / points.size() );
   background(0);  
   
   cam.beginHUD();
-  pointLight(255, 155, 255, 700, 700, 700);
+  pointLight(255, 205, 255, 500, 500, 700);
   cam.endHUD();    
-  
-  
+ 
   if( drawAxis) draw_xyz(AXIS_SIZE);
   if( drawNet) draw_net(SPHERE_RADIUS, 9);  
   if( drawGlobe) earth.draw();
   
-  draw_reviews();
+  int cnt = floor(hs.getPos() * points.size());
+  draw_points( cnt );
      
   cam.setMouseControlled(!hs.locked);
   
@@ -79,25 +83,26 @@ void draw() {
   draw_line();
   cam.endHUD();
   
-  cnt = ceil(hs.getPos() * reviews.size()) + 2;
-  if( cnt > reviews.size()) cnt = 0;
+//  cnt = ceil(hs.getPos() * points.size()) + 2;
+  //if( cnt > points.size()) cnt = 0;
 }
 
 
 //############################################
 
-void draw_reviews() {
-  Iterator itr = reviews.iterator();
-  int i = floor(hs.getPos() * reviews.size());
-
-  while(itr.hasNext()) {
-  Review r = (Review) itr.next();
-    r.draw();
-    i--;
-    if( i < 1 ) return;
-  } 
+void draw_points() {
+  draw_points(-1);
 }
 
+void draw_points( int anz ) {
+  Iterator itr = points.iterator();
+  while(itr.hasNext()) {
+    if( anz  < 1 ) return;
+    SuperPoint r = (SuperPoint) itr.next();
+    r.draw(1);
+    anz--;
+  } 
+}
 
 //############################################
 

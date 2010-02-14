@@ -16,26 +16,36 @@ String DB_HOST = "127.0.0.1";
 
 PeasyCam cam;
 Ellipsoid earth;
-
 MySQL con;
 
-int SPHERE_RADIUS = 100;
-int AXIS_SIZE = SPHERE_RADIUS+20;
-int ANZ = 50000;
+float speed = 1;
+float speed_step = 0.001;
 
-ArrayList points;
-ArrayList reviews;
+int SPHERE_RADIUS = 1000;
+int AXIS_SIZE = ceil(SPHERE_RADIUS * 1.2);
+int LIMIT = 500000;
 
+ClusteredPoints points;
 HScrollbar hs;
+
+boolean drawAxis = true;
+boolean drawGlobe = true;
+boolean drawNet = false;
+boolean running = false;
 
 void setup() {
   size(800, 800, OPENGL); 
-  points = new ArrayList();
   
-  cam = new PeasyCam(this, AXIS_SIZE+150);
-
-  hs = new HScrollbar(10, height-30, width-20, 10, 6);
- // cam.setMinimumDistance(AXIS_SIZE);
+  PFont font;
+  font = loadFont("Calibri-32.vlw"); 
+  textFont(font, 16); 
+  
+  cam = new PeasyCam(this, AXIS_SIZE+350);
+  cam.setMinimumDistance(SPHERE_RADIUS+10);
+  cam.setMaximumDistance(5*AXIS_SIZE);
+ 
+  hs = new HScrollbar(10, height-30, width-20, 10, 3); //x, y, width, height, loosness
+  hs.setPos( 0); 
 
   con = new MySQL( this, DB_HOST, DB_NAME, DB_USER, DB_PASS );
   if( !con.connect() ) {
@@ -49,21 +59,25 @@ void setup() {
   earth.moveTo(new PVector(0,0,0));
   earth.rotateBy(radians(90), radians(90), 0);
     
-  review_find(this, ANZ);
-   
-  println("loaded");
+  points = new ClusteredPoints(this, SPHERE_RADIUS / 100);
+  points.setLimit(LIMIT);
+  //points.setConditions("domain_id LIKE 'de%'");
+ // points.setConditions("login = 'rausauskl'");
+  points.load();
+     
+  println("init done");
 }
 
-boolean drawAxis = true;
-boolean drawGlobe = true;
-boolean drawNet = false;
-
 //#################################################
-int cnt = 0;
 
-void draw() {
-  rotateY(-PI);
- // if(!hs.locked) hs.setPos( float(cnt) / points.size() );
+void draw() {  
+  rotateX(-PI/2);
+  rotateX(-PI/4);
+  
+  if(running) {
+    if(!hs.locked) hs.setPos( hs.getPos() + speed * speed_step );
+    if(hs.getPos() > 1) hs.setPos( 0 );
+  }
   background(0);  
   
   cam.beginHUD();
@@ -71,37 +85,27 @@ void draw() {
   cam.endHUD();    
  
   if( drawAxis) draw_xyz(AXIS_SIZE);
-  if( drawNet) draw_net(SPHERE_RADIUS, 9);  
+  if( drawNet) draw_net(SPHERE_RADIUS, 18);  
   if( drawGlobe) earth.draw();
   
-  int cnt = floor(hs.getPos() * points.size());
-  draw_points( cnt );
+  points.draw( hs.getPos() );
      
   cam.setMouseControlled(!hs.locked);
   
   cam.beginHUD();
   draw_line();
   cam.endHUD();
+}
+
+void keyPressed() {
+  if(key == 'a') drawAxis = !drawAxis;
+  if(key == 's') drawGlobe = !drawGlobe;
+  if(key == 'd') drawNet = !drawNet;
+  if(keyCode == 32) running = !running;  
+  println("pressed " + key + " " + keyCode); // + " " +keyMac+ " "+  keyCtrl + " "+ keyAlt );
   
-//  cnt = ceil(hs.getPos() * points.size()) + 2;
-  //if( cnt > points.size()) cnt = 0;
-}
-
-
-//############################################
-
-void draw_points() {
-  draw_points(-1);
-}
-
-void draw_points( int anz ) {
-  Iterator itr = points.iterator();
-  while(itr.hasNext()) {
-    if( anz  < 1 ) return;
-    SuperPoint r = (SuperPoint) itr.next();
-    r.draw(1);
-    anz--;
-  } 
+  if( keyCode == 37 && speed > 1 ) speed--;
+  if( keyCode == 39) speed++;
 }
 
 //############################################
@@ -125,6 +129,7 @@ void draw_xyz(float nsize) {
 
 void draw_net(float nsize, int anz) {
   noFill();
+  rotateX(-PI/2);
   for( float z = 0; z < anz; z += 1) {
     rotateY(PI/anz);
     //vertival
@@ -145,6 +150,7 @@ void draw_net(float nsize, int anz) {
     rotateX(-r);
   }
   rotateY(-PI);
+  rotateX(PI/2);
 }
 
 void draw_line() {
@@ -152,4 +158,6 @@ void draw_line() {
   hs.update();
   hs.display();
 }
+
+
 

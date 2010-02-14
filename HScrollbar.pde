@@ -9,6 +9,9 @@ class HScrollbar
   boolean locked;
   float ratio;
 
+  String minDate = "1. Jan 2006";
+  String maxDate = "1. Jan 2006";
+
   HScrollbar (int xp, int yp, int sw, int sh, int l) {
     swidth = sw;
     sheight = sh;
@@ -26,7 +29,8 @@ class HScrollbar
   void update() {
     if(over()) {
       over = true;
-    } else {
+    } 
+    else {
       over = false;
     }
     if(mousePressed && over) {
@@ -49,32 +53,35 @@ class HScrollbar
 
   boolean over() {
     if(mouseX > xpos && mouseX < xpos+swidth &&
-    mouseY > ypos && mouseY < ypos+sheight) {
+      mouseY > ypos && mouseY < ypos+sheight) {
       return true;
-    } else {
+    } 
+    else {
       return false;
     }
   }
 
-  void display() {
-    fill(255);
-    text("1. Jan 2006", xpos, ypos-10);
-    text("1. Jan 2006", xpos+swidth - 100, ypos-10);
+  void draw() {
+    stroke(0xFFFFFFFF);
+    fill(255); 
+    text(minDate, xpos, ypos-10);
+    text(maxDate, xpos+swidth - textWidth(maxDate), ypos-10);
     line(xpos, ypos + sheight/2, xpos + swidth, ypos + sheight/2);
     stroke(180);
     strokeWeight(2);
     if(over || locked) {
       fill(153, 102, 0);
-    } else {
+    } 
+    else {
       fill(102, 102, 102);
     }
     rect(spos, ypos, sheight, sheight);
-     strokeWeight(1);
+    strokeWeight(1);
   }
 
   void setPos(float v) {
     spos = newspos = (v  * sposMax) + sposMin; 
-    
+
   }
 
   float getPos() {
@@ -83,3 +90,4 @@ class HScrollbar
     return (spos - sposMin) / sposMax;
   }
 }
+

@@ -14,6 +14,7 @@ class ClusteredPoints extends Thread {
   float size;
 
   boolean loaded;
+  boolean running = true;
 
   ClusteredPoints(PApplet _app, float _size) {
     this.app = _app;
@@ -25,43 +26,53 @@ class ClusteredPoints extends Thread {
     this.loaded = false;
   }
 
+  void reload() {
+    if( this.loaded ) this.loaded = false;
+  }
+
   void load() {
     if( !this.loaded ) {
-      ((Thread) this).start();	           
+      ((Thread) this).start();
     }
   }
 
   void run() { 
-    String query = "SELECT place_id, x, y, z, DAY(date) AS day, date + 0 AS date, stars FROM locations";    
-    if( this.db_conditions != "" ) query += " WHERE " + this.db_conditions; 
-    query += " ORDER BY date";
-    if( this.db_limit > 0 ) query += " LIMIT " + this.db_limit; 
-    println(query);
+    while(running) {
+      if(!this.loaded) {
+        String query = "SELECT place_id, x, y, z, DAY(date) AS day, date + 0 AS date, stars FROM locations";    
+        if( this.db_conditions != "" ) query += " WHERE " + this.db_conditions; 
+        query += " ORDER BY date";
+        if( this.db_limit > 0 ) query += " LIMIT " + this.db_limit; 
+        println(query);
 
-    con.query( query );
-    println("database done");
+        con.query( query );
+        print("database done - ");
 
-    this.points = new ArrayList();
-    int old_day = 0;    
-    SuperPoint p = null;
+        this.points = new ArrayList();
+        int old_day = 0;    
+        SuperPoint p = null;
 
-    while( con.next() )  {
-      int day = con.getInt("day");
-      
-      this.maxDate = con.getInt("date");
-      if(this.minDate == 0) this.minDate = this.maxDate;
-      
-      if( day != old_day ) {
+        while( con.next() )  {
+          int day = con.getInt("day");
+
+          this.maxDate = con.getInt("date");
+          if(this.minDate == 0) this.minDate = this.maxDate;
+
+          if( day != old_day ) {
+            if(p != null) this.points.add(p);
+            p = new SuperPoint(this.app);
+            old_day = day;
+          }
+          color c = get_color(con.getInt("stars"));
+          p.addPoint(con.getFloat("x") * this.size, con.getFloat("y") * this.size, con.getFloat("z") * this.size, red(c), green(c), blue(c), 100 );
+        }
         if(p != null) this.points.add(p);
-        p = new SuperPoint(this.app);
-        old_day = day;
+        println("points updated");
+        this.loaded = true;
+          global_reset();
+  global_start();
       }
-      color c = get_color(con.getInt("stars"));
-      p.addPoint(con.getFloat("x") * this.size, con.getFloat("y") * this.size, con.getFloat("z") * this.size, red(c), green(c), blue(c), 100 );
     }
-    if(p != null) this.points.add(p);
-    println("point load done");
-    this.loaded = true;
   }
 
   public void setLimit(int _limit ) {
@@ -73,7 +84,7 @@ class ClusteredPoints extends Thread {
   }
 
   public void draw( float percentage ) {
-    if( points == null) return;
+    if( points == null || !this.loaded) return;
     int anz = ceil(percentage * points.size()); 
 
     Iterator itr = points.iterator();
@@ -94,6 +105,9 @@ class ClusteredPoints extends Thread {
   }
 
 }
+
+
+
 
 
 

@@ -58,6 +58,8 @@ class HScrollbar
 
   void display() {
     fill(255);
+    text("1. Jan 2006", xpos, ypos-10);
+    text("1. Jan 2006", xpos+swidth - 100, ypos-10);
     line(xpos, ypos + sheight/2, xpos + swidth, ypos + sheight/2);
     stroke(180);
     strokeWeight(2);

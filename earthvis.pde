@@ -32,7 +32,7 @@ float speed_step = 0.001;
 
 int SPHERE_RADIUS = 1000;
 int AXIS_SIZE = ceil(SPHERE_RADIUS * 1.2);
-int LIMIT = 500000;
+int LIMIT = 10000; //00;
 
 boolean drawAxis = true;
 boolean drawGlobe = true;
@@ -53,8 +53,7 @@ HScrollbar hs;
 Textfield t1;
 Textfield t2;
 Textfield t3;
-
-Listener myListener;
+MultiList li;
 
 void setup() {
   size(800, 830, OPENGL); 
@@ -100,8 +99,6 @@ void setup() {
   l.hideBar();
   l.setPosition(0, height-45);
   
-  myListener = new Listener(); 
-  
   int xOff = 100;
   int s = 220;
   int space = 60;
@@ -111,18 +108,33 @@ void setup() {
 
   t1 = controlP5.addTextfield("domain_id", xOff, 0, s-space, hei);
   t1.setGroup(l);  
-  //t1.setAutoClear(false);
-  t1.addListener(myListener);
+  t1.setAutoClear(false);
 
   t2 = controlP5.addTextfield("login",     xOff+s, 0, s-space, hei);   
   t2.setGroup(l);  
   t2.setAutoClear(false);
-  t2.addListener(myListener);
   
   t3 = controlP5.addTextfield("language",xOff+s*2,0, s-space, hei);
   t3.setGroup(l);    
   t3.setAutoClear(false);
-  t3.addListener(myListener);
+  
+/*
+  li = controlP5.addMultiList("myList",0,10,100,12);
+  li.setGroup(l);      
+  // create a multiListButton which we will use to
+  // add new buttons to the multilist
+  li.add("Any",1);
+  li.add("DE",2);
+  li.add("EN",3);
+  li.add("FR",4);
+  li.add("PT",5);
+  li.add("ES",6);
+  li.add("PL",7);
+  
+  // add items to a sublist of button "level1"
+  //b.add("",11).setLabel("All");
+//  b.add("de",12).setLabel("de");
+  */
   
   println("init done");
 
@@ -227,7 +239,9 @@ void draw_net(float nsize, int anz) {
 /* ########################################################### */
 
 public void global_reset() {  
-  hs.setPos(0);   
+  if(hs != null) hs.setPos(0);   
+  if(points != null && points.maxDate != null && hs != null) hs.maxDate = points.maxDate;
+  if(points != null && points.maxDate != null && hs != null) hs.minDate = points.minDate;
 }
 
 public void global_start() {
@@ -239,17 +253,14 @@ public void global_stop() {
 }
 
 
-
-class Listener implements ControlListener {
   void	controlEvent(ControlEvent theEvent) {
     String condition = "1=1";
-    if(t1.stringValue() != "") condition += " AND domain_id LIKE '"+t1.stringValue()+"%'";
-    if(t2.stringValue() != "") condition += " AND login = '"+t2.stringValue()+"'";
-    if(t3.stringValue() != "") condition += " AND language = '"+t3.stringValue()+"'"; 
+    if(t1.getText().length() > 0) condition += " AND domain_id LIKE '"+t1.getText()+"%'";
+    if(t2.getText().length() > 0) condition += " AND login = '"+t2.getText()+"'";
+    if(t3.getText().length() > 0) condition += " AND language = '"+t3.getText()+"'"; 
     points.setConditions(condition);
     points.reload(); // = true;
     global_reset();
     global_stop();
   }  
-}
 

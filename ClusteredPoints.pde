@@ -8,8 +8,8 @@ class ClusteredPoints extends Thread {
 
   ArrayList points = null;
 
-  int minDate = 0;
-  int maxDate = 0;
+  String minDate = null;
+  String maxDate = null;
 
   float size;
 
@@ -39,7 +39,10 @@ class ClusteredPoints extends Thread {
   void run() { 
     while(running) {
       if(!this.loaded) {
-        String query = "SELECT place_id, x, y, z, DAY(date) AS day, date + 0 AS date, stars FROM locations";    
+        minDate = null;
+        maxDate = null;
+
+        String query = "SELECT place_id, x, y, z, DAY(date) AS day, date, stars FROM locations";    
         if( this.db_conditions != "" ) query += " WHERE " + this.db_conditions; 
         query += " ORDER BY date";
         if( this.db_limit > 0 ) query += " LIMIT " + this.db_limit; 
@@ -55,8 +58,10 @@ class ClusteredPoints extends Thread {
         while( con.next() )  {
           int day = con.getInt("day");
 
-          this.maxDate = con.getInt("date");
-          if(this.minDate == 0) this.minDate = this.maxDate;
+          java.sql.Date d = con.getDate("date");
+          this.maxDate  = DateFormat.getDateInstance().format(d); //"a";
+          //.toString();
+          if(this.minDate == null) this.minDate = this.maxDate;
 
           if( day != old_day ) {
             if(p != null) this.points.add(p);
@@ -69,8 +74,8 @@ class ClusteredPoints extends Thread {
         if(p != null) this.points.add(p);
         println("points updated");
         this.loaded = true;
-          global_reset();
-  global_start();
+        global_reset();
+        global_start();
       }
     }
   }
@@ -105,6 +110,7 @@ class ClusteredPoints extends Thread {
   }
 
 }
+
 
 
 

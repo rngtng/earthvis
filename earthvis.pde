@@ -32,7 +32,7 @@ float speed_step = 0.001;
 
 int SPHERE_RADIUS = 1000;
 int AXIS_SIZE = ceil(SPHERE_RADIUS * 1.2);
-int LIMIT = 10000; //00;
+int LIMIT = 1000000;
 
 boolean drawAxis = true;
 boolean drawGlobe = true;

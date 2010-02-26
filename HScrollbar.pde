@@ -8,9 +8,8 @@ class HScrollbar
   boolean over;           // is the mouse over the slider?
   boolean locked;
   float ratio;
-
-  String minDate = "1. Jan 2006";
-  String maxDate = "1. Jan 2006";
+  
+  int dayoffset;
 
   HScrollbar (int xp, int yp, int sw, int sh, int l) {
     swidth = sw;
@@ -18,11 +17,10 @@ class HScrollbar
     int widthtoheight = sw - sh;
     ratio = (float)sw / (float)widthtoheight;
     xpos = xp;
-    ypos = yp-sheight/2;
-    spos = xpos + swidth/2 - sheight/2;
-    newspos = spos;
+    spos = newspos = xpos;    
     sposMin = xpos;
-    sposMax = xpos + swidth - sheight;
+    sposMax = sposMin + swidth;
+    ypos = yp - sheight/2;
     loose = l;
   }
 
@@ -43,7 +41,7 @@ class HScrollbar
       newspos = constrain(mouseX-sheight/2, sposMin, sposMax);
     }
     if(abs(newspos - spos) > 1) {
-      spos = spos + (newspos-spos)/loose;
+      spos = spos + (newspos-spos) / loose;
     }
   }
 
@@ -64,8 +62,22 @@ class HScrollbar
   void draw() {
     stroke(0xFFFFFFFF);
     fill(255); 
-    text(minDate, xpos, ypos-10);
-    text(maxDate, xpos+swidth - textWidth(maxDate), ypos-10);
+    String minDate = (points.minDate != null) ? DateFormat.getDateInstance().format(points.minDate) : "???";
+    String maxDate = (points.minDate != null) ? DateFormat.getDateInstance().format(points.maxDate) : "???";
+    
+    Calendar c = Calendar.getInstance();
+    if( points.minDate != null) c.setTime(points.minDate);
+    dayoffset = (int) Math.ceil((spos - sposMin) / (sposMax - sposMin) * points.points.size());    
+    c.add(Calendar.DATE, dayoffset);
+    String curDate = DateFormat.getDateInstance().format(c.getTime());
+
+    text(minDate, xpos, ypos+20); 
+    float cpos = spos - textWidth(curDate) / 2;
+    if( cpos < 5) cpos = 5;
+    if( spos + textWidth(curDate) - 5 > width) cpos = width - textWidth(maxDate) - 5;
+    text(curDate, cpos, ypos-7);
+    text(maxDate, xpos+swidth - textWidth(maxDate), ypos+20);
+    
     line(xpos, ypos + sheight/2, xpos + swidth, ypos + sheight/2);
     stroke(180);
     strokeWeight(2);
@@ -76,12 +88,13 @@ class HScrollbar
       fill(102, 102, 102);
     }
     rect(spos, ypos, sheight, sheight);
+
+       
     strokeWeight(1);
   }
 
   void setPos(float v) {
-    spos = newspos = (v  * sposMax) + sposMin; 
-
+    spos = newspos = (v  * sposMax) + sposMin;
   }
 
   float getPos() {

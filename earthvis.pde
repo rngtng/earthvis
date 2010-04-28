@@ -19,11 +19,11 @@ import com.hardcorepawn.*;
 //GUI Elements
 import controlP5.*;
 
-//DB Connection
-String DB_USER = "root";
-String DB_PASS = "";
-String DB_NAME = "earthvis";
-String DB_HOST = "127.0.0.1";
+//DB Connection MYSQL
+// String DB_USER = "root";
+// String DB_PASS = "";
+// String DB_NAME = "earthvis";
+// String DB_HOST = "127.0.0.1";
 
 /********************************/
 
@@ -41,7 +41,6 @@ boolean running = true;
 
 PeasyCam cam;
 Ellipsoid earth;
-MySQL con;
 ClusteredPoints points;
 
 ControlP5 controlP5;
@@ -54,6 +53,9 @@ Textfield t2;
 Textfield t3;
 MultiList li;
 
+// MySQL con; //MYSQL
+de.bezier.data.sql.SQLite con; //SQLite
+
 void setup() {
   size(800, 830, OPENGL); 
 
@@ -61,9 +63,17 @@ void setup() {
   font = loadFont("Calibri-32.vlw"); 
   textFont(font, 16); 
 
-  con = new MySQL( this, DB_HOST, DB_NAME, DB_USER, DB_PASS );
+  // MYSQL
+  // con = new MySQL( this, DB_HOST, DB_NAME, DB_USER, DB_PASS );
+  // if( !con.connect() ) {
+  //   println("couldn't connect to DB: " + DB_HOST + " " + DB_NAME + " " + DB_USER);
+  //   exit();
+  // }
+  
+  //SQLite
+  con = new de.bezier.data.sql.SQLite( this, "earthvis.rdb" );  // open database file
   if( !con.connect() ) {
-    println("couldn't connect to DB: " + DB_HOST + " " + DB_NAME + " " + DB_USER);
+    println("couldn't connect to DB");
     exit();
   }
 

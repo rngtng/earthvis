@@ -35,15 +35,15 @@ void setup()
     exit();
   }
 
-  db = new de.bezier.data.sql.SQLite( this, "../data.rdb" );  // open database file
+  db = new de.bezier.data.sql.SQLite( this, "../earthvis.rdb" );  // open database file
   if ( !db.connect() )
   {
     println("couldn't connect to Local DB");
     exit();      
   }
 
-  //  do_import();
-   do_export();
+  copy_my2lite();
+  // do_export();
 
   noLoop();
 }
@@ -92,14 +92,53 @@ void do_export() {
   println("imported");
 }
 
-void do_import() {
+void copy_my2lite() {
   db.execute( "DELETE FROM locations" );
 
   String query;
 
   int num = 5000;
 
-  for(int offset = 0; offset <250; offset++) {
+  for(int offset = 0; offset < 250; offset++) {
+    /* get data from main server */
+    query = "SELECT * FROM locations LIMIT "+num+" OFFSET " + num*offset;
+
+    con.query( query );
+    println("fetched "+num+", " + num*offset);
+
+    while( con.next() )  {
+      //reviews.add( new Review( con.getInt("stars"), con.getString("date"), con.getFloat("lat"), con.getFloat("lng") ) );
+      float lat = con.getFloat("lat");      
+      float lng = con.getFloat("lng");
+      float latr = radians(-lat);
+      float lngr = radians(lng-90);
+      float x = 100 * cos(lngr) * cos(latr);
+      float y = 100 * sin(lngr) * cos(latr);
+      float z = 100 * sin(latr);
+
+      String query2 = "INSERT INTO locations "
+        + "(id,lat,lng,x,y,z,date,place_id,stars,domain_id,language,login) "
+        + "values (" 
+        + con.getInt("id")+", "+lat+", "+lng+", "+x+", "+y+", "+z+", '"+con.getString("date")+"', "
+        + con.getInt("place_id")+", "+con.getInt("stars")+", '"+con.getString("domain_id")+"', '"+con.getString("language")+"', "
+        + "'"+con.getString("login")+"')";
+
+      db.execute( query2 );
+    }
+  }
+
+  println("imported");
+}
+
+
+void do_import2() {
+  db.execute( "DELETE FROM locations" );
+
+  String query;
+
+  int num = 5000;
+
+  for(int offset = 0; offset < 250; offset++) {
     /* get data from main server */
     query = "SELECT reviews.id, reviews.stars, reviews.created_at AS date, reviews.language, "
       + "place_id, places.domain_id, places.longitude AS lng, places.latitude AS lat, places.name,  "

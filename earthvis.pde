@@ -20,10 +20,10 @@ import com.hardcorepawn.*;
 import controlP5.*;
 
 //DB Connection MYSQL
-// String DB_USER = "root";
-// String DB_PASS = "";
-// String DB_NAME = "earthvis";
-// String DB_HOST = "127.0.0.1";
+String DB_USER = "root";
+String DB_PASS = "";
+String DB_NAME = "earthvis";
+String DB_HOST = "127.0.0.1";
 
 /********************************/
 
@@ -53,8 +53,8 @@ Textfield t2;
 Textfield t3;
 MultiList li;
 
-// MySQL con; //MYSQL
-de.bezier.data.sql.SQLite con; //SQLite
+de.bezier.data.sql.SQL con; //MYSQL & SQLite
+boolean mysql = true;
 
 void setup() {
   size(800, 830, OPENGL); 
@@ -63,19 +63,19 @@ void setup() {
   font = loadFont("Calibri-32.vlw"); 
   textFont(font, 16); 
 
-  // MYSQL
-  // con = new MySQL( this, DB_HOST, DB_NAME, DB_USER, DB_PASS );
-  // if( !con.connect() ) {
-  //   println("couldn't connect to DB: " + DB_HOST + " " + DB_NAME + " " + DB_USER);
-  //   exit();
-  // }
-  
-  //SQLite
-  con = new de.bezier.data.sql.SQLite( this, "earthvis.rdb" );  // open database file
-  if( !con.connect() ) {
-    println("couldn't connect to DB");
-    exit();
-  }
+  // Try to connect to MYSQL, fall back to SQLite
+  println("trying to connect to MYSQL...");
+  con = new MySQL(this, DB_HOST, DB_NAME, DB_USER, DB_PASS);
+  if(!con.connect()) {
+     println("couldn't connect to DB: " + DB_HOST + " " + DB_NAME + " " + DB_USER);
+     println("trying to connect to SQLite...");
+     con = new de.bezier.data.sql.SQLite(this, DB_NAME + ".rdb");  // open database file
+     if(!con.connect()) {
+       println("couldn't connect to SQLite DB" + DB_NAME);
+       exit();
+     }
+     mysql = false;
+  } 
 
   points = new ClusteredPoints(this, SPHERE_RADIUS / 100);
   points.load();

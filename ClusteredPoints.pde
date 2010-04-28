@@ -60,10 +60,12 @@ class ClusteredPoints extends Thread {
     this.points.clear();
     System.gc(); //force garbage collection
 
-    // String query = "SELECT x, y, z, DAY(date) AS day, date AS udate, stars FROM locations";    //MYSQL
-    String query = "SELECT x, y, z, strftime('%d', date) AS day, strftime('%s', date) * 1000 AS udate, stars FROM locations";    //SQLLITE
+    //UPDATE locations SET day = strftime('%d', date), udate = strftime('%s', date) * 1000
+
+    String query = (mysql) ? "DAY(date) AS day, date AS udate" : "day, udate";
+    query = "SELECT x, y, z, " + query + ", stars FROM locations";
     if( this.db_conditions != "" ) query += " WHERE " + this.db_conditions; 
-    query += " ORDER BY date";
+    query += " ORDER BY udate";
     if( this.db_limit > 0 ) query += " LIMIT " + this.db_limit; 
 
     println(query);

@@ -1,2 +1,4 @@
 .DS_Store
 applet
+application.macosx
+application.linux
